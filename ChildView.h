@@ -23,6 +23,8 @@ public:
 	double xddelta;
 	double ydmin;
 	double yddelta;
+	int m_height;
+	int m_width;
 
 // Überschreibungen
 	protected:
@@ -47,5 +49,9 @@ public:
 	afx_msg void OnCograMandelbrot();
 	afx_msg void OnVektorQuadrat1();
 	afx_msg void OnVektorRotation();
+	void CChildView::GLInit(int Breite, int Hoehe, int Modus);
+	void CChildView::Bunter_Einheitswuerfel();
+	void CChildView::Achsenkreuz(float l);
+	afx_msg void OnAufgabe5();
 };
 
