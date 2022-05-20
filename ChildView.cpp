@@ -10,6 +10,7 @@
 #include <iostream>
 #include <gl/GL.h>
 #include <gl/GLU.h>
+#include <iostream>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -38,6 +39,8 @@ BEGIN_MESSAGE_MAP(CChildView, CWnd)
 	ON_COMMAND(ID_VEKTOR_QUADRAT1, &CChildView::OnVektorQuadrat1)
 	ON_COMMAND(ID_VEKTOR_ROTATION32777, &CChildView::OnVektorRotation)
 	ON_COMMAND(ID_AUFGABE5_W32778, &CChildView::OnAufgabe5)
+	ON_COMMAND(ID_AUFGABE5_FIGURZEICHNEN, &CChildView::OnAufgabe5Figurzeichnen)
+	ON_COMMAND(ID_AUFGABE4_W32780, &CChildView::OnAufgabe4)
 END_MESSAGE_MAP()
 
 
@@ -500,47 +503,329 @@ void CChildView::Achsenkreuz(float l)
 }
 
 
+void CChildView::OnAufgabe4()
+{
+	// TODO: Fügen Sie hier Ihren Befehlshandlercode ein.
+	
+	CDC* pDC = GetDC();
+
+	CRect rc;
+	GetClientRect(&rc);
+	double height = rc.Height()/2;
+	double width = rc.Width()/2;
+
+	int groeße = 50;
+
+	Matrix3 RotCube = Matrix3();
+	Matrix3 TransCube, TransCubeReverse;
+	Vektor3 Würfel[8];
+
+	Würfel[0] = Vektor3(width - groeße, height - groeße, 0);
+	Würfel[1] = Vektor3(width + groeße, height - groeße, 0);
+	Würfel[2] = Vektor3(width + groeße, height + groeße, 0);
+	Würfel[3] = Vektor3(width - groeße, height + groeße, 0);
+	Würfel[4] = Vektor3(width - groeße, height - groeße, groeße * 2);
+	Würfel[5] = Vektor3(width + groeße, height - groeße, groeße * 2);
+	Würfel[6] = Vektor3(width + groeße, height + groeße, groeße * 2);
+	Würfel[7] = Vektor3(width - groeße, height + groeße, groeße * 2);
+
+	//pDC->SetViewportOrg(height/2, width/2);
+
+	for (int anim = 0; anim < 90000; anim++) {
+		pDC->FillSolidRect(0, 0, rc.Width()*2, rc.Height()*2, RGB(255, 255, 255));
+
+		Sleep(10);
+
+		// Rotieren
+		TransCube.setTransCube(-width, -height);
+		
+		RotCube.setRotCubeX(0.05);
+		
+		TransCubeReverse.setTransCube(width, height);
+		
+		for (int i = 0; i < 8; i++) {
+			Würfel[i] = TransCube * Würfel[i]; // Verschieben Ursprung
+			Würfel[i] = RotCube * Würfel[i]; // Rotieren im Ursprung
+			Würfel[i] = TransCubeReverse * Würfel[i]; // Verschieben undo
+		}
+		
+		RotCube.setRotCubeY(0.05);
+		
+		for (int i = 0; i < 8; i++) {
+			Würfel[i] = TransCube * Würfel[i]; // Verschieben Ursprung
+			Würfel[i] = RotCube * Würfel[i]; // Rotieren im Ursprung
+			Würfel[i] = TransCubeReverse * Würfel[i]; // Verschieben undo
+		}
+		RotCube.setRotCubeZ(0.05);
+		
+		for (int i = 0; i < 8; i++) {
+			Würfel[i] = TransCube * Würfel[i]; // Verschieben Ursprung
+			Würfel[i] = RotCube * Würfel[i]; // Rotieren im Ursprung
+			Würfel[i] = TransCubeReverse * Würfel[i]; // Verschieben undo
+		}
+		
+		// hinten
+		pDC->MoveTo(Würfel[3].vek[0], Würfel[3].vek[1]);
+		for (int i = 0; i < 4; i++) {
+			pDC->LineTo(Würfel[i].vek[0], Würfel[i].vek[1]);
+		}
+		// vorne
+		pDC->MoveTo(Würfel[7].vek[0], Würfel[7].vek[1]); // vek[0] -> x-Koordinate | vek[1] -> y-Koordinate
+		for (int i = 4; i < 8; i++) {
+			pDC->LineTo(Würfel[i].vek[0], Würfel[i].vek[1]);
+		}
+
+		for (int i = 0; i < 4; i++) {
+			pDC->MoveTo(Würfel[i].vek[0], Würfel[i].vek[1]);
+			pDC->LineTo(Würfel[i + 4].vek[0], Würfel[i + 4].vek[1]);
+		}
+		pDC->BitBlt(0, 0, width, height, pDC, 0, 0, SRCCOPY);
+
+		// Animation abbrechen, wenn Esc gedrückt
+		if (GetAsyncKeyState(VK_ESCAPE)) {
+			break;
+		}
+	}
+
+
+	/*
+	//To-do: Viereck in der Mitte zeichnen
+	pDC->MoveTo(0, 0);
+	pDC->MoveTo(Würfel[0].vek[0], Würfel[0].vek[1]);
+
+
+	//To-do: Würfel mit entsprechender Matrix multiplizieren
+	pDC->SetViewportOrg(height / 2, width / 2);
+	for (int i = 0; i < 8; i++) {
+		Würfel[i] = RotCube * Würfel[i];
+	}
+	pDC->MoveTo(0, 0);
+	pDC->MoveTo(Würfel[0].vek[0], Würfel[0].vek[1]);
+	//Quadrat malen
+	for (int i = 0; i < 4; i++) {
+		pDC->LineTo(Würfel[i].vek[0], Würfel[i].vek[1]);
+	}
+
+	pDC->LineTo(0, 0);
+	pDC->SetViewportOrg(50, 50);
+	
+	for (int i = 0; i < 4;i++) {
+		pDC->MoveTo(Würfel[i].vek[0], Würfel[i].vek[1]);
+		pDC->LineTo(Würfel[i + 4].vek[0], Würfel[i + 4].vek[1]);
+	}
+	pDC->LineTo(Würfel[4].vek[0], Würfel[4].vek[1]);*/
+}
+
 void CChildView::OnAufgabe5()
 {
 	GLInit(700, 700, 1);
 	glClearColor(0.5, 0.5, 0.5, 0.0);
 
-	glOrtho(-1, 1, -1, 1, 1.5, 6);
-	gluLookAt(1.0, 1.0, 3.0,	//Augpunkt
-			  0.0, 0.0, 0.0,	//Zielpunkt
-			  0.0, 1.0, 0.0);	//Up-Vektor
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
+	//glOrtho(-1, 1, -1, 1, 1.5, 6);
+	glFrustum(-1, 1, -1, 1, 1.5, 6);
+	gluLookAt(1.0, 1.0, 3.0,	//Augpunkt
+		0.0, 0.0, 0.0,	//Zielpunkt
+		0.0, 1.0, 0.0);	//Up-Vektor
+
+	for (int anim = 0; anim < 900; anim++) {
+
+		glEnable(GL_DEPTH_TEST);	// Tiefe hinzufügen
+		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		glMatrixMode(GL_MODELVIEW); // Transformationen organisieren
+
+		glLoadIdentity();
+		Achsenkreuz(1.2);
+		double rotationsspeed = 30;
+
+		//großer Würfel in der Mitte
+		//glRotated(-30.0, 1.0, 0, 0);
+		//glRotated(45.0, 0.0, 1.0, 0);
+		Bunter_Einheitswuerfel();
+		
+		//kleiner Würfel an der rechten Seite
+		glLoadIdentity();
+		glTranslated(0.75, 0, 0);
+		glScaled(0.5, 0.5, 0.5);
+		glRotated(anim, 1.0, 0.0, 0.0);
+		Bunter_Einheitswuerfel();
+
+		//kleiner Würfel an der oberen Seite
+		glLoadIdentity();
+		glTranslated(0, 0.75, 0);
+		glScaled(0.5, 0.5, 0.5);
+		glRotated(anim, 0.0, 1.0, 0.0);
+		Bunter_Einheitswuerfel();
+
+		//kleiner Würfel an der vorderen Seite
+		glLoadIdentity();
+		glTranslated(0, 0, 0.75);
+		glScaled(0.5, 0.5, 0.5);
+		glRotated(anim, 0.0, 0.0, 1.0);
+		Bunter_Einheitswuerfel();
+
+		//kleiner Würfel an der linken Seite
+		glLoadIdentity();
+		glTranslated(-0.75, 0, 0.0);
+		glScaled(0.5, 0.5, 0.5);
+		glRotated(anim, 1.0, 0.0, 0.0);
+		Bunter_Einheitswuerfel();
+		
+		//kleiner Würfel an der unteren Seite
+		glLoadIdentity();
+		glTranslated(0, -0.75, 0.0);
+		glScaled(0.5, 0.5, 0.5);
+		glRotated(anim, 0.0, 1.0, 0.0);
+		Bunter_Einheitswuerfel();
+		
+		//kleiner Würfel an der hinteren Seite
+		glLoadIdentity();
+		glTranslated(0, 0, -0.75);
+		glScaled(0.5, 0.5, 0.5);
+		glRotated(rotationsspeed, 0.0, 0.0, 1.0);
+		Bunter_Einheitswuerfel();
+
+		SwapBuffers(wglGetCurrentDC());
+
+		//GLInit(0, 0, 0);
+		Sleep(10);
+
+		if (GetAsyncKeyState(VK_ESCAPE))
+			break;
+		// TODO: Fügen Sie hier Ihren Befehlshandlercode ein.
+	}
+}
+
+void CChildView::OnAufgabe5Figurzeichnen()
+{
+	// TODO: Fügen Sie hier Ihren Befehlshandlercode ein.
+	GLInit(900, 900, 1);
+	glClearColor(0.1f, 0.1f, 0.1f, 0.0);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	glFrustum(-1, 1, -1, 1, 1.5, 6);
+	gluLookAt(1.0, 1.0, 3.0,	//Augpunkt
+		0.0, 0.0, 0.0,	//Zielpunkt
+		0.0, 1.0, 0.0);	//Up-Vektor
+
 	glEnable(GL_DEPTH_TEST);
 
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
 
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClear(GL_DEPTH_BUFFER_BIT);
-
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	Achsenkreuz(1.2);
+	GLUquadricObj* pquadric = gluNewQuadric();
+	gluQuadricDrawStyle(pquadric, GLU_FILL);
 
-	//großer Einheitswürfel in der Mitte
-	//glRotated(-30.0, 1.0, 0, 0);
-	//glRotated(45.0, 0.0, 1.0, 0);
-	Bunter_Einheitswuerfel();
 
-	//kleiner Würfel an der rechten Seite
-	glTranslated(0.75, 0, 0);
-	glScaled(0.5, 0.5, 0.5);
-	Bunter_Einheitswuerfel();
+	//eine simple Scheibe
+	/*glPushMatrix();
+	glTranslated(0, 1, 0);
+	glRotated(90, 1.0, 0, 0);
+	float matrix0[10] = { 0.05375, 0.05, 0.06625, 0.18275, 0.17, 0.22525, 0.332741, 0.328634, 0.346435, 0.3 };
+	material(matrix0);
+	glColor3d(0.0, 1.0, 0.0);
+	gluDisk(pquadric, 0.3, 0.8, 20, 5);
+	glPopMatrix();*/
 
-	//kleiner Würfel an der oberen Seite
-	glTranslated(0, 1.3, 0);
-	glScaled(0.5, 0.5, 0.5);
-	Bunter_Einheitswuerfel();
 
-	SwapBuffers(wglGetCurrentDC());
+	//die untere Kugel
+	glPushMatrix();
+	glTranslated(-0.5, 0, 0);
+	float matrix[10] = {0.05375, 0.05, 0.06625, 0.18275, 0.17, 0.22525, 0.332741, 0.328634, 0.346435, 0.6};
+	material(matrix);
+	gluSphere(pquadric, 0.27, 20, 20);
+	glPopMatrix();
 
-	GLInit(0, 0, 0);
-	//Bunter_Einheitswuerfel();
-	// TODO: Fügen Sie hier Ihren Befehlshandlercode ein.
+
+	//Kugel auf dem linken Zylinder
+	glPushMatrix();
+	glTranslated(-0.5, 1, 0);
+	glColor3d(1.0, 0.0, 0.0);
+	float matrix2[10] = {0.135, 0.2225, 0.1575, 0.54, 0.89, 0.63, 0.316228, 0.316228, 0.316228, 0.1 };
+	material(matrix2);
+	gluSphere(pquadric, 0.27, 20, 20);
+	glPopMatrix();
+
+	
+	//Zylinder auf der linken Seite
+	glPushMatrix();
+	glTranslated(-0.5, 1, 0);
+	glRotated(90, 1.0, 0, 0);
+	float matrix3[10] = { 0.25, 0.20725, 0.20725, 1, 0.829, 0.829, 0.296648, 0.296648, 0.296648, 0.088 };
+	material(matrix3);
+	gluCylinder(pquadric, 0.275, 0.275, 1, 20, 10);
+	glPopMatrix();
+
+	//Zylinder, welcher die beiden oberen Kugeln verbindet
+	glPushMatrix();
+	glTranslated(-0.5, 1, 0);
+	glRotated(90, 0, 1, 0);
+	float matrix4[10] = { 0.1, 0.18725, 0.1745, 0.396, 0.74151, 0.69102, 0.297254, 0.30829, 0.306678, 0.1 };
+	material(matrix4);
+	gluCylinder(pquadric, 0.275, 0.275, 1, 20, 10);
+	glPopMatrix();
+
+	//Kugel auf dem rechten Zylinder
+	glPushMatrix();
+	glTranslated(0.5, 1, 0);
+	glColor3d(1.0, 0.0, 0.0);
+	float matrix5[10] = { 0.135, 0.2225, 0.1575, 0.54, 0.89, 0.63, 0.316228, 0.316228, 0.316228, 0.1 };
+	material(matrix5);
+	gluSphere(pquadric, 0.27, 20, 20);
+	glPopMatrix();
+
+
+	//Zylinder auf der rechten Seite
+	glPushMatrix();
+	glTranslated(0.5, 1, 0);
+	glRotated(90, 1.0, 0, 0);
+	float matrix6[10] = { 0.25, 0.20725, 0.20725, 1, 0.829, 0.829, 0.296648, 0.296648, 0.296648, 0.088 };
+	material(matrix6);
+	gluCylinder(pquadric, 0.275, 0.275, 1, 20, 10);
+	glPopMatrix();
+
+
+	//die untere Kugel auf der rechten Seite
+	glPushMatrix();
+	glTranslated(0.5, 0, 0);
+	float matrix7[10] = { 0.05375, 0.05, 0.06625, 0.18275, 0.17, 0.22525, 0.332741, 0.328634, 0.346435, 0.6 };
+	material(matrix7);
+	gluSphere(pquadric, 0.27, 20, 20);
+	glPopMatrix();
+
+
+
+	//Idee: Zeichnen von einem Penis
+
+	SwapBuffers(wglGetCurrentDC()); //statt glFlush();
+
+	//GLInit(0, 0, 0);
+}
+
+void CChildView::material(float matR[10]) {
+	//GLfloat Ambient[4] = { matR, matG, matB, 1 };
+	GLfloat Ambient[4] = { matR[0], matR[1], matR[2], 1 };
+	//GLfloat Diffuse[4] = { matR, matG, matB, 1 };
+	GLfloat Diffuse[4] = { matR[3], matR[4], matR[5], 1 };
+	//GLfloat Specular[4] = { matR, matG, matB, 1 };
+	GLfloat Specular[4] = { matR[6], matR[7], matR[8], 1 };
+
+	//GLfloat shininess = 64;
+	GLfloat shininess = matR[9] * 128;
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, Ambient);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, Diffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, Specular);
+
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
 }

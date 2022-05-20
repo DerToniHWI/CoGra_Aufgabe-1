@@ -56,9 +56,6 @@
     <ClCompile Include="Vektor2.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Matrix2.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CoGraAufgabe1.rc">

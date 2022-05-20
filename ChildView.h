@@ -53,5 +53,8 @@ public:
 	void CChildView::Bunter_Einheitswuerfel();
 	void CChildView::Achsenkreuz(float l);
 	afx_msg void OnAufgabe5();
+	afx_msg void OnAufgabe5Figurzeichnen();
+	afx_msg void OnAufgabe4();
+	void material(float matR[10]);
 };
 
